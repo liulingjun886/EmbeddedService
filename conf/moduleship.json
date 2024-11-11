@@ -1,0 +1,6 @@
+[
+	{"model":"TESTPCS","soname":"testpcs.so"},
+	{"model":"TESTBCMU","soname":"testbcmu.so"},
+	{"model":"TESTBMU","soname":"testbmu.so"},
+	{"model":"TESTMETER","soname":"testmeter.so"}
+]

@@ -1,0 +1,12 @@
+{
+	"connparam":{
+		"usessl":0,
+		"addr":"www.baidu.com",
+		"port":1883,
+		"username":"test",
+		"password":"test"
+	},
+	"registerinfo":[
+		{"key":"A","addr":1024,"type":"int","len":2}
+	]
+}

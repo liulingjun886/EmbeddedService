@@ -1,0 +1,9 @@
+{
+	"SelfCloud":{
+		"module":"cloud_yt",
+		"cfg":"cloud_yt.json"
+	},
+	"ThirdCloud":{
+		
+	}
+}
