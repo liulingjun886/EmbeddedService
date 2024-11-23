@@ -1,6 +1,7 @@
 #pragma once
 #include "Device.h"
 
+// 储能柜设备
 class ESSDevice : public Device
 {
 public:
@@ -9,3 +10,4 @@ public:
 		return 0;
 	}
 };
+

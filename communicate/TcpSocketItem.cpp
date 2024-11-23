@@ -168,7 +168,7 @@ int CTcpSocketItem::OutPutNotify()
 		{
 			m_send_buff.skip(ret);
 			if(m_send_buff.data_len() <= 0)
-				DisableOutPut();				
+				DisableOutPut();
 		}
 		else
 		{

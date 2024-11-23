@@ -3,20 +3,6 @@
 #include <Device.h>
 #include <DataPool.h>
 
-enum PCSStATECTRL{
-	PCSPOWEROFF=0,
-	PCSPOWERON,
-};
-
-enum PCSRUNSTATE
-{
-	PCSSTOP = 0,
-	STARTING,
-	RUNNING,
-	FAULT,
-	STOPPING,
-};
-
 #pragma pack(1)
 
 //PCS数据

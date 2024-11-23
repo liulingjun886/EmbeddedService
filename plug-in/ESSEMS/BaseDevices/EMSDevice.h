@@ -1,7 +1,6 @@
 #pragma once
-
+#include "EMSServer.h"
 #include "Device.h"
-#include "DataPool.h"
 
 #pragma pack(1)
 
@@ -39,7 +38,7 @@ struct EMSData
 #pragma pack()
 
 
-class EMSDevice : public Device
+class EMSDevice : public Device, public EMSServer
 {
 public:
 	virtual int GetThreadNum() {return 8;}
@@ -62,3 +61,4 @@ public:
 protected:
 	EMSData *m_pEMSData;	
 };
+

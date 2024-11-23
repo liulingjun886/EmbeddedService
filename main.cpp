@@ -3,7 +3,8 @@
 #include <unistd.h>
 #include "Log.h"
 #include "PublicTool.h"
-#include "EMSDevice.h"
+#include "EMSServer.h"
+#include "Device.h"
 #include "json/json.h"
 #include "SysCfgModule.h"
 
@@ -47,7 +48,7 @@ int main(int argc, char* argv[])
 			break;
 		std::string emsSo = PublicTool::GetProgramLocation()+"plug_in/";
 		emsSo.append(productName);
-		EMSDevice* pEms = dynamic_cast<EMSDevice*>(PublicTool::CreateDevice(emsSo+".so",module));
+		EMSServer* pEms = dynamic_cast<EMSServer*>(PublicTool::CreateDevice(emsSo+".so",module,true));
 		if(!pEms)
 			break;
 		

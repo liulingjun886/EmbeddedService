@@ -12,7 +12,7 @@ m_standardly_interval(1000),m_slowly_interval(60000)
 Device::~Device()
 {
 	if(m_bFreeDevdData)
-		delete[] m_pDevBasicInfo;
+		delete[] (char*)m_pDevBasicInfo;
 }
 
 int Device::InitData(char* ptr)
@@ -71,7 +71,7 @@ const std::vector<Device*>& Device::GetChildren()
 	return m_vec_children;
 }
 
-bool Device::SetRunState(RUNSTATE state)
+bool Device::SetRunState(ONLINESTATE state)
 {
 	if(m_pDevBasicInfo->m_n_run_state == state)
 		return false;

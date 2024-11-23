@@ -9,7 +9,7 @@
 #include "core/ShareData.h"
 
 
-enum RUNSTATE
+enum ONLINESTATE
 {
 	OFFLINE = 0, //离线
 	ONLINE		//在线
@@ -39,7 +39,7 @@ struct DevBasicInfo
 	char   m_str_device_sn[20];					//设备SN
 	char   m_str_model[20];						//设备型号
 	char   m_str_name[20];						//设备名称
-	RUNSTATE  m_n_run_state;					//设备在线状态
+	ONLINESTATE  m_n_run_state;					//设备在线状态
 };
 #pragma pack()
 
@@ -58,7 +58,7 @@ public:
 	Device* GetTopDevice();
 	void AddChild(Device* pDev);
 	const std::vector<Device*>& GetChildren();
-	bool SetRunState(RUNSTATE state);
+	bool SetRunState(ONLINESTATE state);
 	void SetEnableState(DEVICE_WORKING_STATE state);
 	DEVICE_WORKING_STATE GetEnableState() const;
 	void SetQuicklyInterval(UINT32 msec);
@@ -74,7 +74,7 @@ protected:
 	virtual int  SetDataPtr(char* ptr);			//设置数据接口指针
 	virtual void StartDevice(){}      			//启用设备
 	virtual void StopDevice(){}	        		//停用设备
-
+	
 protected:
 	DevBasicInfo* m_pDevBasicInfo;				//设备基础信息
 	bool		  m_bFreeDevdData;				//是否需要回收设备信息
@@ -83,6 +83,7 @@ protected:
 	UINT32 		  m_quickly_interval;			//紧急数据查询间隔毫秒
 	UINT32		  m_standardly_interval;		//正常数据查询间隔毫秒
 	UINT32 		  m_slowly_interval;			//不紧急数据查询间隔秒
+	
 private:
 	DEVICE_WORKING_STATE m_n_state_enable;		//启用状态
 };

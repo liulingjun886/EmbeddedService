@@ -11,8 +11,8 @@ struct AirConditionData
 	UINT16 m_u16_state_inside_fan_switch;		//内风机 
 	UINT16 m_u16_state_outside_fan_switch;		//外风机
 	UINT16 m_u16_state_compressor_switch;		//压缩机状态
-	UINT16 m_u16_state_electric_heating_switch;//电加热
-	UINT16 m_u16_state_emergency_fan_switch;//应急风机
+	UINT16 m_u16_state_electric_heating_switch;	//电加热
+	UINT16 m_u16_state_emergency_fan_switch;	//应急风机
 
 	UINT16 m_temp_coil;						//盘管温度
 	UINT16 m_temp_outside;					//室外温度

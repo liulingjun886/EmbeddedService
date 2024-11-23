@@ -3,7 +3,6 @@
 #include <string.h>
 #include "Log.h"
 #include "Device.h"
-#include "EMSDevice.h"
 #include <errno.h>
 #include <dlfcn.h>
 #include <fstream>
@@ -34,9 +33,9 @@ bool PublicTool::FileIsExists(const std::string& file_name)
     return (0 == access(file_name.c_str(), 0));
 }
 
-void* PublicTool::OpenSo(const std::string& soPath)
+void* PublicTool::OpenSo(const std::string& soPath,bool global)
 {
-	void* pHander = dlopen(soPath.c_str(),RTLD_LAZY);
+	void* pHander = dlopen(soPath.c_str(),RTLD_LAZY | (global ? RTLD_GLOBAL : 0));
 	if(!pHander)
 	{
 		log_error("%s load failer %d, %s", soPath.c_str(),errno, dlerror());
@@ -54,9 +53,9 @@ void* PublicTool::LoadFunAddr(void* pHander,const std::string& funName)
 	return pFun;
 }
 
-Device* PublicTool::CreateDevice(const std::string& soPath, const std::string& model)
+Device* PublicTool::CreateDevice(const std::string& soPath, const std::string& model, bool global)
 {
-	void* pSoHander = OpenSo(soPath);
+	void* pSoHander = OpenSo(soPath,global);
 	if(!pSoHander)
 		return nullptr;
 
