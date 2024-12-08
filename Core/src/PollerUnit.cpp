@@ -20,13 +20,15 @@ void CPollerUnit::RemovePoller(CPollerObject* pObj)
 void CPollerUnit::Wait(UINT64 timeOut)
 {
 	int maxfd = 0;
+	int nEvent = 0;
+	int fd = -1;
 	FD_ZERO(&rd);
 	FD_ZERO(&wd);
 	FD_ZERO(&ed);
 
 	for(std::set<CPollerObject*>::iterator it = m_set_poller_unit.begin(); it != m_set_poller_unit.end(); ++it)
 	{
-		int fd = (*it)->getPoller();
+		fd = (*it)->getPoller();
 		//std::cout << fd << std::endl;
 		if(fd < 0 )
 			continue;
@@ -34,7 +36,7 @@ void CPollerUnit::Wait(UINT64 timeOut)
 		if(fd > maxfd)
 			maxfd = fd;
 
-		int nEvent = (*it)->GetEvent();
+		nEvent = (*it)->GetEvent();
 		if(nEvent & READ)
 			FD_SET(fd,&rd);
 		
@@ -57,16 +59,18 @@ void CPollerUnit::HandPollerEvents()
 	if(m_n_ret <= 0)
 		return;
 
-	CPollerObject* poller;
 	int fd = -1;
+	int nEvent = 0;
+	CPollerObject* poller;
+	
 	for(std::set<CPollerObject*>::iterator it = m_set_poller_unit.begin(); it != m_set_poller_unit.end(); )
 	{
 		poller = (*it++);
-		int fd = poller->getPoller();
+		fd = poller->getPoller();
 		if(fd < 0 )
 			continue;
 		
-		if(FD_ISSET(fd,&ed))
+		if((nEvent & ERROR) && FD_ISSET(fd,&ed))
 		{
 			poller->HunpUpNotiry();
 			continue;
@@ -77,7 +81,7 @@ void CPollerUnit::HandPollerEvents()
 			poller->HunpUpNotiry();
 		}
 
-		if(FD_ISSET(fd,&wd) && 0 != poller->OutPutNotify())
+		if((nEvent & WRITE) && FD_ISSET(fd,&wd) && 0 != poller->OutPutNotify())
 		{
 			poller->HunpUpNotiry();
 		}

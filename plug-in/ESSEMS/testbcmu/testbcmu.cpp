@@ -17,7 +17,7 @@ enum BCMUACTION
 
 int TestBcmu::Initialize(int cmd, ASyncCallDataInst & initdata)
 {
-	if(MODBUS_TCP_CLI == cmd)
+	if(NET == cmd)
 	{
 		ModbusTcpCliComm* pData = (ModbusTcpCliComm*)initdata.data();
 		log_info("cmd = %d, addr = %s, port = %d, slaveid = %d", cmd,pData->addr,pData->nPort,pData->nSlaveId);

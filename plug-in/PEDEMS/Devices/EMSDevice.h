@@ -6,6 +6,14 @@
 #include "Device.h"
 #include <vector>
 #include "json/json.h"
+#include "DieselManager.h"
+#include "PVDeviceManager.h"
+#include "ESSDeviceManager.h"
+#include "DieselManager.h"
+#include "LoadDeviceManager.h"
+
+
+
 
 class PVDevice;
 class ESSDevice;
@@ -47,11 +55,6 @@ public:
 	void  GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,const Json::Value& ConnParam = Json::Value::nullRef);//获取设备连接方式
 
 public:
-	float GetPvTotalPower();				//获取当前光伏功率总和
-	float GetEssTotalDischargePower();				//获取当前储能功率总和
-	float GetDeTotalPower();				//获取柴发组功率总和
-	float GetLoadNeedPower();				//获取负载需求功率和
-	float GetLoadTotalPower();				//获取负载当前功率和
 	void  EnergySchedule();					//能量管理
 
 protected:
@@ -64,11 +67,11 @@ protected:
 
 protected:
 	EMSData *m_ems_data;
-	std::vector<PVDevice*> m_vec_pv;					//光伏系统数组
-	std::vector<ESSDevice*> m_vec_ess;					//储能系统数组
-	std::vector<DieselDevice*> m_vec_diesel;			//柴油发电系统数组
-	std::vector<LoadDevice*> m_vec_load;				//负载数组
-	std::vector<MeterDevice*> m_vec_meter;				//电表数组
+	PVDeviceManager m_pvManager;					//光伏系统数组
+	ESSDeviceManager m_essManager;					//储能系统数组
+	DieselManager m_dieselManager;					//柴油发电系统数组
+	LoadDeviceManager m_loadManager;				//负载数组
+	std::vector<MeterDevice*> m_vec_meter;			//电表数组
 	
 	CTimer m_time_energy_schedule;						//能量调度定时器
 };

@@ -24,7 +24,7 @@ TestLiquidCooler::~TestLiquidCooler()
 
 int  TestLiquidCooler::Initialize(int cmd, ASyncCallDataInst & initdata)
 {
-	if(MODBUS_RTU == cmd)
+	if(RS485 == cmd)
 	{
 		ModbusRtuComm* pRtu = (ModbusRtuComm*)initdata.data();
 		if(m_modbus_proxy.CreateCtx(pRtu->PortDev, pRtu->nBaud, pRtu->nDataBit, pRtu->nParity, pRtu->nStopBit))
@@ -39,7 +39,7 @@ int  TestLiquidCooler::Initialize(int cmd, ASyncCallDataInst & initdata)
 		if(m_modbus_proxy.EnableRs485())
 			return -1;
 	}
-	else if(MODBUS_TCP_CLI == cmd)
+	else if(NET == cmd)
 	{
 		ModbusTcpCliComm* pData = (ModbusTcpCliComm*)initdata.data();
 		log_info("cmd = %d, addr = %s, port = %d, slaveid = %d", cmd,pData->addr,pData->nPort,pData->nSlaveId);

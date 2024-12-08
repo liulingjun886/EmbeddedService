@@ -53,7 +53,8 @@ void Log::InitLog(const char * const szFileName,LOG_LEVEL level)
 	{
 		char mkdirCmd[256] = {0};
 		sprintf(mkdirCmd,"mkdir -p %s",logPath.c_str());
-		system(mkdirCmd);
+		if(system(mkdirCmd))
+			printf("create log file failer\n");
 	}
 	
 	int ret = snprintf(m_szFileName,256,"%s/log/%s",PublicTool::GetProgramLocation().c_str(),szFileName);
@@ -92,6 +93,10 @@ int Log::ProcessTimeOutEvent(UINT32 nTimeId)
 	}
 }
 
+void Log::SetLogLevel(LOG_LEVEL level)
+{
+	m_nLogLevel = level;
+}
 
 void Log::DoAsyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pReq)
 {
@@ -107,11 +112,6 @@ void Log::DoAsyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pReq)
   			milli = tv.tv_usec / 1000;
   			localtime_r(&tv.tv_sec, &t);
   			strftime(buffer, sizeof(buffer), "%H:%M:%S", &t);
-			
-			/*struct tm *p;
-			time_t timep;
-			time(&timep);
-			p=localtime(&timep);*/
 			
 			if(m_pFile)
 			{
@@ -137,10 +137,10 @@ void Log::DoAsyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pReq)
 				
 				//fprintf(m_pFile,"%02d:%02d:%02d|%s\n",p->tm_hour,p->tm_min,p->tm_sec,pReq.data());
 				fprintf(m_pFile,"%s.%03d|%s\n",buffer,milli,pReq.data());
-				
+				fflush(m_pFile);
 				//printf("%02d:%02d:%02d|%s\n",p->tm_hour,p->tm_min,p->tm_sec,pReq.data());
 				printf("%s.%03d|%s\n",buffer,milli,pReq.data());
-				fflush(m_pFile);
+				
 			}
 			else
 			{

@@ -18,7 +18,7 @@ public:
 	virtual void StopDevice();	        														//停用设备
 	virtual void DoAsyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pReq);				//处理异步请求(工作线程执行)
 	virtual void DoSyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pResp);				//处理同步请求
-	virtual int  PowerOnOrOff(PCSStATECTRL state);												//开机/关机
+	virtual int  PowerOnOrOff(RUNSTATE state);												//开机/关机
 	virtual int  SetP(float p);																	//设置有功功率 正放 负充 单位kw
 	virtual int  SetP(float pA,float pB, float pC)												//设置有功功率 正放 负充 单位kw
 	{

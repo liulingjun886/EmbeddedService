@@ -45,6 +45,10 @@ Device* DeviceManager::CreateDevice(const std::string& model)
 	{
 		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plug_in/"+it->second, it->first);
 	}
+	else
+	{
+		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plug_in/"+model+".so", model);
+	}
 	
 	return pDev;
 }

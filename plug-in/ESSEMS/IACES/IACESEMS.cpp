@@ -227,7 +227,7 @@ void IACESEMS::SetPower(float p)
 	{
 		m_pPcs->SetP(0.f);
 		m_pPcs->SetAppaP(0.f);
-		m_pPcs->PowerOnOrOff(PCSPOWEROFF);
+		m_pPcs->PowerOnOrOff(TURNOFF);
 	}
 	else
 	{
@@ -247,10 +247,10 @@ void IACESEMS::SetPower(float p)
 		}
 
 		const PCSData* pPcsData = m_pPcs->GetData();
-		if(RUNNING != pPcsData->m_u16_work_state)				//如果PCS待机状态则开启PCS
+		if(TURNON != pPcsData->m_u16_work_state)				//如果PCS待机状态则开启PCS
 		{
 			log_warn("pcs is not running %d",pPcsData->m_u16_work_state);
-			m_pPcs->PowerOnOrOff(PCSPOWERON);
+			m_pPcs->PowerOnOrOff(TURNON);
 			return;
 		}
 
@@ -496,7 +496,6 @@ void IACESEMS::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,co
 		case NONE:
 			return;
 		case RS485:
-		case MODBUS_RTU:
 		{
 			pConnParam.fill(0,sizeof(ModbusRtuComm));
 			ModbusRtuComm* pData = (ModbusRtuComm*)pConnParam.data();
@@ -508,19 +507,11 @@ void IACESEMS::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,co
 			pData->nSlaveId = commparam["slaveid"].asInt();
 			return;
 		}
-		case MODBUS_TCP_CLI:
+		case NET:
 		{
 			pConnParam.fill(0,sizeof(ModbusTcpCliComm));
 			ModbusTcpCliComm* pData = (ModbusTcpCliComm*)pConnParam.data();
 			snprintf(pData->addr,sizeof(pData->addr),"%s",commparam["addr"].asString().c_str());
-			pData->nPort = commparam["port"].asInt();
-			pData->nSlaveId = commparam["slaveid"].asInt();
-			return;
-		}
-		case MODBUS_TCP_SRV:
-		{
-			pConnParam.fill(0,sizeof(ModbusTcpSrvComm));
-			ModbusTcpSrvComm* pData = (ModbusTcpSrvComm*)pConnParam.data();
 			pData->nPort = commparam["port"].asInt();
 			pData->nSlaveId = commparam["slaveid"].asInt();
 			return;

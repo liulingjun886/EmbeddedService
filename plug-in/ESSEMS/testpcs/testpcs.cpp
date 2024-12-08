@@ -36,7 +36,7 @@ TestPcs::~TestPcs()
 
 int TestPcs::Initialize(int cmd, ASyncCallDataInst & initdata)
 {
-	if(MODBUS_RTU == cmd)
+	if(RS485 == cmd)
 	{
 		ModbusRtuComm* pRtu = (ModbusRtuComm*)initdata.data();
 		if(m_modbus_proxy.CreateCtx(pRtu->PortDev, pRtu->nBaud, pRtu->nDataBit, pRtu->nParity, pRtu->nStopBit))
@@ -51,7 +51,7 @@ int TestPcs::Initialize(int cmd, ASyncCallDataInst & initdata)
 		if(m_modbus_proxy.EnableRs485())
 			return -1;
 	}
-	else if(MODBUS_TCP_CLI == cmd)
+	else if(NET == cmd)
 	{
 		ModbusTcpCliComm* pData = (ModbusTcpCliComm*)initdata.data();
 		log_info("cmd = %d, addr = %s, port = %d, slaveid = %d", cmd,pData->addr,pData->nPort,pData->nSlaveId);
@@ -92,7 +92,7 @@ int TestPcs::ProcessTimeOutEvent(UINT32 nTimeId)
 	{
 		case TM_OPENING:
 		{
-			if(RUNNING == m_pcs_data->m_u16_work_state)
+			if(TURNON == m_pcs_data->m_u16_work_state)
 			{
 				m_timer_open_pcs.StopTimer();
 				OnPcsPowerOn();
@@ -106,7 +106,7 @@ int TestPcs::ProcessTimeOutEvent(UINT32 nTimeId)
 		}
 		case TM_CLOSING:
 		{
-			if(PCSSTOP == m_pcs_data->m_u16_work_state)
+			if(TURNOFF == m_pcs_data->m_u16_work_state)
 			{
 				m_timer_close_pcs.StopTimer();
 				OnPcsPowerOff();
@@ -133,18 +133,18 @@ int TestPcs::ProcessTimeOutEvent(UINT32 nTimeId)
 }
 
 
-int TestPcs::PowerOnOrOff(PCSStATECTRL state)				//开机/关机
+int TestPcs::PowerOnOrOff(RUNSTATE state)				//开机/关机
 {
-	if(state == PCSPOWERON)
+	if(state == TURNON)
 	{
-		if(RUNNING == m_pcs_data->m_u16_work_state || m_timer_open_pcs.IsActive())
+		if(TURNON == m_pcs_data->m_u16_work_state || m_timer_open_pcs.IsActive())
 			return 0;
 		SendAsyncAction(AT_POWER_ON_OFF,1);
 		m_timer_open_pcs.StartTimerSec(5);
 	}
 	else
 	{
-		if(PCSSTOP == m_pcs_data->m_u16_work_state || m_timer_close_pcs.IsActive())
+		if(TURNOFF == m_pcs_data->m_u16_work_state || m_timer_close_pcs.IsActive())
 			return 0;
 		SendAsyncAction(AT_POWER_ON_OFF,0);
 		m_timer_close_pcs.StartTimerSec(5);
@@ -155,7 +155,7 @@ int TestPcs::PowerOnOrOff(PCSStATECTRL state)				//开机/关机
 int TestPcs::SetP(float p)
 {
 	m_set_power = p;
-	if(RUNNING != m_pcs_data->m_u16_work_state)
+	if(TURNON != m_pcs_data->m_u16_work_state)
 		return -1;
 	INT32 power = (INT32)(m_set_power*10);
 	SendAsyncAction(AT_SET_ACTIVE_POWER, power);
@@ -220,9 +220,9 @@ void TestPcs::DoSyncAction(INT32 cmd, INT32 param, ASyncCallDataInst& pResp)
 				m_pcs_data->m_p_ac_total = pData->power*0.1f;
 				if(m_pcs_data->m_u16_work_state != pData->work_state)
 				{
-					if(RUNNING == pData->work_state)
+					if(TURNON == pData->work_state)
 						OnPcsPowerOn();
-					else if(PCSSTOP == pData->work_state)
+					else if(TURNOFF == pData->work_state)
 						OnPcsPowerOff();
 					m_pcs_data->m_u16_work_state = pData->work_state;
 				}
@@ -340,7 +340,7 @@ void TestPcs::OnQueryDataCallBack()
 			m_pcs_data->m_p_dc = pData[0x6055-0x6050]; 				 // 直流功率
 			m_pcs_data->m_p_dc_total = pData[0x6056-0x6050]; 		 // 直流总电流
 			UINT16 nWorkState = pData[0x6057-0x6050];
-			m_pcs_data->m_u16_work_state = (nWorkState & 0x01) > 0 ? RUNNING:PCSSTOP;	 // 工作状态可不用
+			m_pcs_data->m_u16_work_state = (nWorkState & 0x01) > 0 ? TURNON:TURNOFF;	 // 工作状态可不用
 			//log_info("m_pcs_data->m_u16_work_state = %d",m_pcs_data->m_u16_work_state);
 			m_pcs_data->m_temp_igbt = pData[0x6058-0x6050]; 		 // IGBT 温度
 			m_pcs_data->m_temp_env = pData[0x6059-0x6050]; 			 // 环境温度

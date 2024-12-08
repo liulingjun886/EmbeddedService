@@ -2,6 +2,8 @@
 
 #include <Device.h>
 #include <DataPool.h>
+#include "DevStateDef.h"
+
 
 #pragma pack(1)
 
@@ -128,7 +130,7 @@ public:
 	
 public:
 	virtual int SetDataPtr(char * ptr);
-	virtual int PowerOnOrOff(PCSStATECTRL state)=0;		//1 开机 0 关机
+	virtual int PowerOnOrOff(RUNSTATE state)=0;		//1 开机 0 关机
 	virtual int Reset()=0;								//复位
 	virtual int SetP(float p)=0;						//设置有功功率 正放 负充 单位kw
 	virtual int SetP(float pA, float pB, float pC)=0;	//设置分三相设置有功功率

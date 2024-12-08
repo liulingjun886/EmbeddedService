@@ -53,15 +53,18 @@ int CanSocket::Init()
 
     // can down
     sprintf(cmd, "ip link set can%d down", m_n_canid);
-    system(cmd);
+    if(system(cmd))
+		return -1;
 
     // set can bitrate
     sprintf(cmd, "ip link set can%d type can bitrate %d", m_n_canid, m_n_can_bitrate);
-    system(cmd);
+    if(system(cmd))
+		return -1;
 
     // can up
     sprintf(cmd, "ip link set can%d up", m_n_canid);
-    system(cmd);
+    if(system(cmd))
+		return -1;
 
     if ((can_fd = socket(PF_CAN, SOCK_RAW, CAN_RAW)) < 0)
     {

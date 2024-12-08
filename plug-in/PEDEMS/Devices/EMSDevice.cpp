@@ -8,31 +8,15 @@
 #include "PublicTool.h"
 #include "DeviceManager.h"
 #include "Log.h"
+#include "HardWareCfg.h"
 
 enum TIMEID
 {
 	ENERGY_SCHEDULE=1,
 };
 
-static struct tagSerialPortMap
-{
-	int addr;
-	char devPath[32];
-}SerialPortMap[] = {
-	{0,"undefined"},
-	{1,"/dev/ttySAC2"},
-	{2,"/dev/ttySAC4"},
-	{3,"/dev/ttySAC3"},
-	{4,"/dev/ttySAC1"}
-};
-
-
 EMSDevice::EMSDevice()
 {
-	m_vec_pv.clear();
-	m_vec_ess.clear();
-	m_vec_diesel.clear();
-	m_vec_load.clear();
 	m_vec_meter.clear();
 	m_time_energy_schedule.InitTimerNode(this, ENERGY_SCHEDULE);
 }
@@ -85,13 +69,11 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 	switch(connType)
 	{
 		case NONE:
-			return;
 		case RS485:
-		case MODBUS_RTU:
 		{
 			pConnParam.fill(0,sizeof(ModbusRtuComm));
 			ModbusRtuComm* pData = (ModbusRtuComm*)pConnParam.data();
-			snprintf(pData->PortDev,sizeof(pData->PortDev),"%s",SerialPortMap[commparam["addr"].asInt()].devPath);
+			snprintf(pData->PortDev,sizeof(pData->PortDev),"%s",HardWareCfg::GetInstance()->GetRs485Name(commparam["addr"].asInt()).c_str());
 			pData->nBaud = commparam["Baud"].asInt();
 			pData->nDataBit = commparam["DataBit"].asInt();
 			pData->nParity = commparam["Parity"].asInt();
@@ -99,19 +81,11 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 			pData->nSlaveId = commparam["slaveid"].asInt();
 			return;
 		}
-		case MODBUS_TCP_CLI:
+		case NET:
 		{
 			pConnParam.fill(0,sizeof(ModbusTcpCliComm));
 			ModbusTcpCliComm* pData = (ModbusTcpCliComm*)pConnParam.data();
 			snprintf(pData->addr,sizeof(pData->addr),"%s",commparam["addr"].asString().c_str());
-			pData->nPort = commparam["port"].asInt();
-			pData->nSlaveId = commparam["slaveid"].asInt();
-			return;
-		}
-		case MODBUS_TCP_SRV:
-		{
-			pConnParam.fill(0,sizeof(ModbusTcpSrvComm));
-			ModbusTcpSrvComm* pData = (ModbusTcpSrvComm*)pConnParam.data();
 			pData->nPort = commparam["port"].asInt();
 			pData->nSlaveId = commparam["slaveid"].asInt();
 			return;
@@ -130,89 +104,32 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 	return;
 }
 
-
-float EMSDevice::GetPvTotalPower()				//获取当前光伏功率总和
-{
-	float totalP = 0.f;
-	for(auto it = m_vec_pv.begin(); it != m_vec_pv.end(); ++it)
-	{
-		totalP += (*it)->GetData()->p;
-	}
-	return totalP;
-}
-
-float EMSDevice::GetEssTotalDischargePower()				//获取当前储能功率总和
-{
-	float totalP = 0.f;
-	for(auto it = m_vec_ess.begin(); it != m_vec_ess.end(); ++it)
-	{
-		totalP += (*it)->GetData()->p;
-	}
-	return totalP;
-}
-
-float EMSDevice::GetDeTotalPower()				//获取柴发组功率总和
-{
-	float totalP = 0.f;
-	for(auto it = m_vec_diesel.begin(); it != m_vec_diesel.end(); ++it)
-	{
-		totalP += (*it)->GetData()->p;
-	}
-	return totalP;
-}
-
-float EMSDevice::GetLoadNeedPower()				//获取负载需求功率和
-{
-	float totalP = 0.f;
-	for(auto it = m_vec_load.begin(); it != m_vec_load.end(); ++it)
-	{
-		totalP += (*it)->GetData()->needp;
-	}
-	return totalP;
-}
-
-float EMSDevice::GetLoadTotalPower()				//获取负载当前功率和
-{
-	float totalP = 0.f;
-	for(auto it = m_vec_load.begin(); it != m_vec_load.end(); ++it)
-	{
-		totalP += (*it)->GetData()->p;
-	}
-	return totalP;
-}
-
 void  EMSDevice::EnergySchedule()
 {
-	float loadTotalP = GetLoadNeedPower();
-	float pvTotalP = GetPvTotalPower();
+	float loadTotalP = m_loadManager.GetNeedPower();
+	float needPower = 0.f;
+	needPower = m_pvManager.DisPatchPower(loadTotalP);
 
-	if(loadTotalP <= pvTotalP)
+	if(0 == needPower)
+		return;
+	
+	needPower = m_essManager.DisPatchPower(needPower);
+
+	if(needPower < 0.f)
 	{
-		//TODO 储能是否可以充电
+		m_pvManager.SetPower(loadTotalP + needPower);
 		return;
 	}
 
-	float essMaxPower = GetEssTotalDischargePower();
-	if(loadTotalP <= pvTotalP + essMaxPower)
-	{
-		//TODO 调整储能功率
-		return;
-	}
+	needPower = m_dieselManager.DisPatchPower(needPower);
 
-	float des = GetDeTotalPower();
-
-	if(loadTotalP <= pvTotalP + essMaxPower + des)
-	{
-		//TODO 启动柴发并调整功率
-		return;
-	}
-
-	// TODO 按优先级关闭负载
-	// TurnOffLoad();
+	if(needPower > 0.f)
+		m_loadManager.SetPower(loadTotalP - needPower);
 }
 
 int EMSDevice::CreateDevices()
 {
+	HardWareCfg::GetInstance()->Init();
 	DeviceManager::GetInstance()->Init();
 	std::string devCfg = PublicTool::ReadFile(PublicTool::GetProgramLocation()+"conf/Device.json");
 	//log_debug("devCfg = %s", devCfg.c_str());
@@ -248,20 +165,20 @@ int EMSDevice::CreatePvDevices(Json::Value& v)
 
 	for(int i = 0; i < v.size(); ++i)
 	{
-		const Json::Value& dev = v[i];
-		const Json::Value& obj = dev["dev"];
+		Json::Value& dev = v[i];
+		Json::Value& obj = dev["dev"];
 
-		
 		PVDevice *pPvDev = dynamic_cast<PVDevice *>(DeviceManager::GetInstance()->CreateDevice(obj["model"].asString()));
 		if(!pPvDev)
 			return -1;
+		
 		pPvDev->InitData();
 		int connType = 0;
 		ASyncCallDataInst data;
 		GetDeviceConnParam(connType,data,obj);
-		if(pPvDev->Init(value["uuid"].asString(), value["model"].asString(), value["uuid"].asString(), connType, data))
+		if(pPvDev->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(), connType, data))
 			return -1;
-		m_vec_pv.append(pPvDev);
+		m_pvManager.AddPvDev(pPvDev);
 		
 		if(!dev["Meter"].isObject())
 			continue;
@@ -269,7 +186,7 @@ int EMSDevice::CreatePvDevices(Json::Value& v)
 		MeterDevice* pMeter = CreateMeterDevices(dev["Meter"]);
 		if(pMeter)
 		{
-			m_vec_meter.append(pMeter);
+			m_vec_meter.push_back(pMeter);
 		}
 	}
 }
@@ -302,7 +219,7 @@ MeterDevice* EMSDevice::CreateMeterDevices(Json::Value& obj)
 	GetDeviceConnParam(connType,data,obj);
 	if(pMeter->Init(obj["uuid"].asString(), obj["model"].asString(), obj["uuid"].asString(),0))
 	{
-		delete pMeter
+		delete pMeter;
 		return nullptr;
 	}
 	return pMeter;

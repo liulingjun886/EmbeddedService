@@ -24,8 +24,7 @@ public:
 	const PVData* GetData();
 	
 public:
-	virtual int TurnOnOrOff(RUNSTATE s)=0;		//1 开机 0 关机
-	virtual int Reset()=0;								//复位
+	virtual int TurnOnOrOff(RUNSTATE s)=0;				//1 开机 0 关机
 	virtual int SetP(float p)=0;						//设置有功功率 正放 负充 单位kw
 	virtual int SetP(float pA, float pB, float pC)=0;	//设置分三相设置有功功率
 	virtual int SetAppaP(float p)=0;					//设置无功功率

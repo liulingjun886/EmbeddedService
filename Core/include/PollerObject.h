@@ -3,9 +3,9 @@
 #include "UserTypeDefines.h"
 
 enum {
+	ERROR = 1,
 	READ = 2,
-	WRITE = 3,
-	ERROR = 1
+	WRITE = 4
 };
 
 class CPollerObject

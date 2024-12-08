@@ -1,0 +1,18 @@
+{
+	"RS485":[
+		"None",
+		"/dev/ttySAC2",
+		"/dev/ttySAC4",
+		"/dev/ttySAC3",
+		"/dev/ttySAC1"
+	],
+	"CAN":[
+		
+	],
+	"DI":[
+		
+	],
+	"DO":[
+	
+	]
+}

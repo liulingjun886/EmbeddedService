@@ -26,7 +26,7 @@ public:
 	void InitLog(const char * const szFileName,LOG_LEVEL level = LOG_WARNING);
 	void WriteLog(LOG_LEVEL level, const char *pFileName, const char* pFunName,unsigned long cLine,const char *fmt, ...);
 	int ProcessTimeOutEvent(UINT32 nTimeId);
-	
+	void SetLogLevel(LOG_LEVEL level);
 protected:
 	void DoAsyncAction(INT32 cmd,  INT32 param, ASyncCallDataInst& pReq);
 	

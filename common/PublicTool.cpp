@@ -15,7 +15,9 @@ const std::string& PublicTool::GetProgramLocation()
 	if(0 == strProgramLocation.length())
 	{
 		char buf[256] = {0};
-		readlink("/proc/self/exe", buf, sizeof(buf));
+		if(-1 == readlink("/proc/self/exe", buf, sizeof(buf)))
+			return strProgramLocation;
+		
 		for(int i = strlen(buf); i >= 0; --i)
 		{
 			if(buf[i] != '/')
@@ -26,6 +28,12 @@ const std::string& PublicTool::GetProgramLocation()
 		strProgramLocation = buf;
 	}
 	return strProgramLocation; // 0 is for heap memory
+}
+
+const std::string& PublicTool::GetNullString()
+{
+	static const std::string strValue = "";
+	return strValue;
 }
 
 bool PublicTool::FileIsExists(const std::string& file_name)

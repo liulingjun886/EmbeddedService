@@ -4,9 +4,12 @@ INC = -I./include -I./common -I./syscfg -I./devices -I./communicate
 CFLAGS = -g -Werror -O0 -std=c++11
 LDFLAGS = -Wl,--export-dynamic
 SOFLAGS = -O0 -g -std=c++11 -fPIC -shared
-OUTPUT_SO_DIR = ./plug_in
+
 PLUGS_DIR = ./plug-in/$(pj)
 PLUGS = 
+
+BUILDDIR = ./build
+OUTPUT_SO_DIR = $(BUILDDIR)/plugs
 
 ifeq ($(tg),arm)
 HOST = arm-linux-gnueabihf-
@@ -40,7 +43,7 @@ APP_SRC = ./main.cpp
 APP_OBJ = $(APP_SRC:.cpp=.o)
 
 SmartEMS:$(SYSCFG_OBJ) $(APP_OBJ) $(DEVICE_OBJ) $(TOOLS_OBJ) $(COMM_OBJ)
-	$(HOST)g++ $(CFLAGS) $^ -o $@ $(LIBS_DIR) $(LIBS) $(LDFLAGS)
+	$(HOST)g++ $(CFLAGS) $^ -o $(BUILDDIR)/$@ $(LIBS_DIR) $(LIBS) $(LDFLAGS)
 
 %.o:%.cpp
 	$(HOST)g++ -c $(CFLAGS) $< -o $@ $(INC)

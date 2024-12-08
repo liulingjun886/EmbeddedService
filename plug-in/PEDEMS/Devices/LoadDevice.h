@@ -29,6 +29,6 @@ public:
 protected:
 	virtual int SetDataPtr(char * ptr);
 	
-private:
+protected:
 	LoadData* m_ld_data;
 };

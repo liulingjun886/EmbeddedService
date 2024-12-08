@@ -1,11 +1,14 @@
 #pragma once
 
-#define NONE 0
-#define RS485 1
-#define MODBUS_RTU 2
-#define MODBUS_TCP_CLI 3
-#define MODBUS_TCP_SRV 4
-#define CAN 5
+enum CommunicatType
+{
+	NONE,
+	RS485=1,
+	CAN,
+	NET,
+	DI,
+	DO
+};
 
 //串口通信
 struct SerialPort
@@ -36,14 +39,14 @@ struct ModbusTcpCliComm : public TcpCliComm
 	int nSlaveId;					//设备地址
 };
 
-struct ModbusTcpSrvComm
-{
-	int nPort;						//监听端口
-	int nSlaveId;					//设备地址
-};
 
 struct CanComm
 {
 	int nCanId;						//can接口ID
 	int nBand;						//can速度
+};
+
+struct DIDOComm
+{
+	int nIndex;
 };

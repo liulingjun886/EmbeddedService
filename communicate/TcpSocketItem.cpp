@@ -54,7 +54,7 @@ void CBuffCache::append(const char* data, UINT32 data_len)
     }
     else if (data_len + _data_len > _block_size)
     {
-		fix_block_size(data_len);
+		fix_block_size(data_len + _data_len);
 		char* mem = (char*)malloc(_block_size);
         if(!mem)
         	throw(0);
@@ -101,11 +101,11 @@ void CBuffCache::skip(UINT32 length)
 
 void CBuffCache::clear()
 {
-	if (_mem == NULL)
+	if (_mem == nullptr)
         return;
 	
 	free(_mem);
-    _mem = NULL;
+    _mem = nullptr;
 	_data_head = 0;
     _data_len = 0;
     _block_size = 0;
@@ -121,7 +121,7 @@ void CBuffCache::fix_block_size(UINT32 data_len)
 		_block_size = _block_size << 1;
 	}
 
-	_block_size = 1024;//ClassSize::Roundup(_block_size);
+	//_block_size = 1024;//ClassSize::Roundup(_block_size);
 }
 
 #define MAX_RECV_BUFF 65536
