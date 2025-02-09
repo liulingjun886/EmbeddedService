@@ -11,15 +11,9 @@ class CReactor
 public:
 	static CReactor* GetInstance();
 private:
-	CReactor():m_b_running(true)
-	{
-		
-	}
+	CReactor();
 public:
-	~CReactor()
-	{
-	
-	}
+	~CReactor();
 	int Init(int num);
 	int AddThreads(int num);
 	bool IsRun();

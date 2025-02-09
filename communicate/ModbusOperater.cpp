@@ -7,7 +7,7 @@
 #include <linux/serial.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+#include "DeviceCommType.h"
 
 
 ModbusOperator::ModbusOperator():m_pCtx(nullptr),m_b_reconnect(false),m_modbus_type(UNDEFINE)
@@ -23,6 +23,39 @@ ModbusOperator::~ModbusOperator()
 		modbus_free(m_pCtx);
 	}
 }
+
+int ModbusOperator::InitModbusOperaterHander(ModbusOperator* p, int type, const char * initdata, UINT32 nTImeOut)
+{
+	if(RS485 == type)
+	{
+		ModbusRtuComm* pRtu = (ModbusRtuComm*)initdata;
+		if(p->CreateCtx(pRtu->PortDev, pRtu->nBaud, pRtu->nDataBit, pRtu->nParity, pRtu->nStopBit))
+			return -1;
+
+		if(p->InitCtx(pRtu->nSlaveId, nTImeOut))
+			return -1;
+
+		if(p->Connect())
+			return -1;
+		
+		if(p->EnableRs485())
+			return -1;
+	}
+	else if(NET == type)
+	{
+		ModbusTcpCliComm* pData = (ModbusTcpCliComm*)initdata;
+		log_info("cmd = %d, addr = %s, port = %d, slaveid = %d", type, pData->addr,pData->nPort,pData->nSlaveId);
+		if(p->CreateCtx(pData->addr, pData->nPort))
+			return -1;
+
+		if(p->InitCtx(pData->nSlaveId, nTImeOut))
+			return -1;
+
+		p->Connect();
+	}
+	return 0;
+}
+
 
 int ModbusOperator::CreateCtx(const std::string& devPath,int nBaud, int nDataBit,int nParity, int nStopBit)
 {
@@ -69,6 +102,12 @@ int ModbusOperator::EnableRs485()
 	
 	return 0;
 }
+
+int ModbusOperator::EnableDebug()
+{
+	return modbus_set_debug(m_pCtx, 1);
+}
+
 
 
 int ModbusOperator::CreateCtx(const std::string& ipAddr,UINT16 nPort)

@@ -11,6 +11,7 @@ CONFIG += c++11
 SOURCES += \
     can.cpp \
     cfgtcpsockitem.cpp \
+    common.cpp \
     devicecfg.cpp \
     devicescfg.cpp \
     devicesrvcfg.cpp \
@@ -22,14 +23,14 @@ SOURCES += \
     net.cpp \
     serialport.cpp \
     syscfg.cpp \
-    tcpsockitem.cpp \
-    MD5.cpp
+    tcpsockitem.cpp
 
 HEADERS += \
     DeviceCfgData.h \
     StatusInfo.h \
     can.h \
     cfgtcpsockitem.h \
+    common.h \
     devicecfg.h \
     devicescfg.h \
     devicesrvcfg.h \
@@ -40,8 +41,7 @@ HEADERS += \
     net.h \
     serialport.h \
     syscfg.h \
-    tcpsockitem.h \
-    MD5.h
+    tcpsockitem.h
 
 FORMS += \
     can.ui \

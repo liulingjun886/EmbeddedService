@@ -21,6 +21,17 @@ float ESSDeviceManager::SetPower(float p)
 	return p;
 }
 
+float ESSDeviceManager::GetPower()
+{
+	float p = 0.f;
+	for(std::vector<ESSDevice*>::iterator it = m_vec_ess.begin(); it != m_vec_ess.end(); ++it)
+	{
+		p += (*it)->GetData()->m_ac_info.m_power_info.m_p;
+	}
+	return p;
+}
+
+
 float ESSDeviceManager::DisPatchPower(float p)
 {
 	if(0.f == p)
@@ -58,6 +69,22 @@ float ESSDeviceManager::DisPatchPower(float p)
 	return 0.f;
 }
 
+int   ESSDeviceManager::GetSoc()
+{
+	int nSoc = 0,nNum = 0;
+	for(std::vector<ESSDevice*>::iterator it = m_vec_ess.begin(); it != m_vec_ess.end(); ++it)
+	{
+		nSoc += (*it)->GetData()->m_soc;
+		++nNum;
+	}
+
+	if(nNum > 0)
+	{
+		return nSoc/nNum;
+	}
+
+	return 0;
+}
 
 float ESSDeviceManager::GetMaxChargePower()
 {

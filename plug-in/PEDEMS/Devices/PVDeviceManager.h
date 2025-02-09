@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <core/UserTypeDefines.h>
 
 class PVDevice;
 
@@ -11,7 +12,8 @@ public:
 
 public:
 	void  AddPvDev(PVDevice* pDev);
-	float SetPower(float p);
+	float SetPower(UINT32 p);
+	UINT32 GetPower();
 	float DisPatchPower(float p);
 	
 private:

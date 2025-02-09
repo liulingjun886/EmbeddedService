@@ -43,11 +43,11 @@ Device* DeviceManager::CreateDevice(const std::string& model)
 	std::map<std::string, std::string>::iterator it = m_map_model_relative.find(model);
 	if(it != m_map_model_relative.end())
 	{
-		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plug_in/"+it->second, it->first);
+		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plugs/"+it->second, it->first);
 	}
 	else
 	{
-		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plug_in/"+model+".so", model);
+		pDev = PublicTool::CreateDevice(PublicTool::GetProgramLocation()+"plugs/"+model+".so", model);
 	}
 	
 	return pDev;
@@ -85,8 +85,14 @@ bool DeviceManager::RegisterDevice(Device* const pDev)
 	}*/
 	std::map<std::string, Device*>::iterator it = m_map_devices.find(pDev->GetDevBasicInfo()->m_str_device_sn);
 	if(it != m_map_devices.end())
+	{
+		log_warn("Device double %s",pDev->GetDevBasicInfo()->m_str_device_sn);
+		for(std::map<std::string, Device*>::iterator it = m_map_devices.begin(); it != m_map_devices.end(); ++it)
+		{
+			log_debug("uuid = %s,name = %s",it->first.c_str(),*(it->second)->GetDevBasicInfo()->m_str_device_sn);
+		}
 		return false;
-	
+	}
 	m_map_devices[pDev->GetDevBasicInfo()->m_str_device_sn] = pDev;
 	return true;
 }

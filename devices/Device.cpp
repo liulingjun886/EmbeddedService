@@ -3,8 +3,8 @@
 
 
 Device::Device():m_pDevBasicInfo(nullptr),m_bFreeDevdData(false),
-m_p_parent(nullptr),m_n_state_enable(DISABLE),m_quickly_interval(200),
-m_standardly_interval(1000),m_slowly_interval(60000)
+m_p_parent(nullptr),m_n_state_enable(DISABLE),m_critical_interval(200),
+m_important_interval(1000),m_unimportant_interval(60000)
 {
 	m_vec_children.clear();
 }
@@ -21,13 +21,11 @@ int Device::InitData(char* ptr)
 	{
 		ptr = new char[GetDataLen()];
 		if(!ptr)
-			return 0;
+			return -1;
 		m_bFreeDevdData = true;
 	}
-
 	return SetDataPtr(ptr);
 }
-
 
 int Device::Init(const std::string& sn, const std::string& model, const std::string& name, int cmd, ASyncCallDataInst& initdata)
 {
@@ -83,6 +81,7 @@ void Device::SetEnableState(DEVICE_WORKING_STATE state)
 {
 	if(m_n_state_enable == state)
 		return;
+	
 	m_n_state_enable = state;
 	if(ENABLE == m_n_state_enable)
 		StartDevice();
@@ -97,15 +96,18 @@ DEVICE_WORKING_STATE Device::GetEnableState() const
 
 int Device::SetDataPtr(char* ptr) 
 {
-	if(ptr)
-	{
-		m_pDevBasicInfo = new (ptr) DevBasicInfo;
-		return sizeof(DevBasicInfo);
-	}
+	m_pDevBasicInfo = new (ptr) DevBasicInfo;
+	return sizeof(DevBasicInfo);
+}
 
-	m_pDevBasicInfo = new DevBasicInfo;
-	m_bFreeDevdData = true;
-	return 0;
+void Device::StartDevice()
+{
+	return;
+}
+
+void Device::StopDevice()
+{
+	return;
 }
 
 int Device::GetDataLen()
@@ -113,23 +115,28 @@ int Device::GetDataLen()
 	return sizeof(DevBasicInfo);
 }
 
-
 int Device::GetSysFault()
 {
 	return 0;
 }
 
-void Device::SetQuicklyInterval(UINT32 msec)
+char* Device::GetLocalData(int& nlen)
 {
-	m_quickly_interval = msec;
+	nlen = 0;
+	return nullptr;
 }
-void Device::SetStandardlyInterval(UINT32 msec)
+
+void Device::SetCriticalInterval(UINT32 msec)
 {
-	m_standardly_interval = msec;
+	m_critical_interval = msec;
 }
-void Device::SetSlowlyInterval(UINT32 msec)
+void Device::SetImportantInterval(UINT32 msec)
 {
-	m_slowly_interval = msec;
+	m_important_interval = msec;
+}
+void Device::SetUnimportantInterval(UINT32 msec)
+{
+	m_unimportant_interval = msec;
 }
 
 

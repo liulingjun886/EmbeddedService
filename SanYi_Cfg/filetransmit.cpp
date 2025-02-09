@@ -125,7 +125,10 @@ int FileTransmit::StartSendFile()
     m_n_send_size = 0;
     m_upload_file = new QFile(m_str_file_path);
     if(!m_upload_file->open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(g_status_info.pMainDialog,"错误","请检查文件是否正确");
         return -1;
+    }
     m_b_uploading = true;
     return 0;
 }

@@ -20,6 +20,10 @@ DeviceCfg::DeviceCfg(QWidget *parent) :
     ui->stackedWidget->addWidget(new Do(this));
     ui->stackedWidget->setCurrentIndex(-1);
     //ui->stackedWidget->currentWidget()->setVisible(true);
+
+    ui->combo_model_nice->addItem("关键");
+    ui->combo_model_nice->addItem("重要");
+    ui->combo_model_nice->addItem("一般");
 }
 
 DeviceCfg::~DeviceCfg()
@@ -34,26 +38,31 @@ void DeviceCfg::setManagerWidget(DevicesCfg* pDevs)
     {
         case 0:
         {
-            ui->combo_model->insertItem(0,"阳光电源","sunny");
-            ui->combo_model->insertItem(1,"古瑞瓦特","gurui");
+            ui->combo_model->insertItem(0,"阳光电源-SG1100UD-MV","SG1100UD-MV");
+            ui->combo_model->insertItem(1,"阳光电源-SG3125HV","SG3125HV");
             break;
         }
         case 1:
         {
-            ui->combo_model->insertItem(0,"三一锂能","sany");
-            ui->combo_model->insertItem(1,"永泰数能","yotai");
+            ui->combo_model->insertItem(0,"阳光电源-SC5000UD-MV-P3","SC5000UD-MV-P3");
+            ui->combo_model->insertItem(1,"阳光电源-SC2500UD-MV-P3","SC2500UD-MV-P3");
             break;
         }
         case 2:
         {
-            ui->combo_model->insertItem(0,"柴发1","caifa1");
-            ui->combo_model->insertItem(1,"柴发1","caifa2");
+            ui->combo_model->insertItem(0,"柴发1","DGTest");
+            ui->combo_model->insertItem(1,"柴发2","caifa2");
             break;
         }
         case 3:
         {
-            ui->combo_model->insertItem(0,"华为","HuaWei");
-            ui->combo_model->insertItem(1,"永泰","YongTaiCharging");
+            //ui->combo_model->insertItem(0,"华为","HuaWei");
+            ui->combo_model->insertItem(1,"永泰","YT-320");
+            break;
+        }
+        case 4:
+        {
+            ui->combo_model->insertItem(0,"安科瑞 DTSD1352","DTSD1352");
             break;
         }
     }
@@ -64,8 +73,10 @@ QJsonObject DeviceCfg::GetCfgJson()
     QJsonObject obj;
 
     obj.insert("uuid",ui->le_sn->text());
-    obj.insert("model",ui->combo_model->currentText());
+    //obj.insert("model",ui->combo_model->currentText());
+    obj.insert("model",ui->combo_model->currentData().toString());
     obj.insert("name",ui->le_name->text());
+    obj.insert("priority",ui->combo_model_nice->currentIndex());
     int nIndex = ui->stackedWidget->currentIndex();
     obj.insert("commtype",nIndex);
     qDebug() << ui->stackedWidget->currentWidget();
@@ -79,8 +90,10 @@ QJsonObject DeviceCfg::GetCfgJson()
 void DeviceCfg::SetCfgJson(const QJsonObject& obj)
 {
     ui->le_sn->setText(obj["uuid"].toString());
-    ui->combo_model->setCurrentText(obj["model"].toString());
+    //ui->combo_model->setCurrentText(obj["model"].toString());
+    ui->combo_model->setCurrentIndex(ui->combo_model->findData(obj["model"].toString()));
     ui->le_name->setText(obj["name"].toString());
+    ui->combo_model_nice->setCurrentIndex(obj["priority"].toInt());
 
     switch(obj["commtype"].toInt())
     {

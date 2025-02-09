@@ -1,10 +1,7 @@
 #pragma once
-
 #include <vector>
 #include <string>
 #include <json/json.h>
-
-
 class HardWareCfg
 {
 public:

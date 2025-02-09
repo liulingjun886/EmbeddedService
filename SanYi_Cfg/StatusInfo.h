@@ -5,10 +5,16 @@
 
 typedef struct stStatusInfo
 {
-    TcpSockItem* pSock;
-    Dialog* pMainDialog;
-    int nMainCode;
-    int nSubCode;
+    TcpSockItem* pSock;         //套接字对象
+    Dialog* pMainDialog;        //主程序窗口
+    QString strAppDir;          //程序路径
+    int     subDeviceType;      //子设备管理类型
+    stStatusInfo()
+    {
+        pSock = nullptr;
+        pMainDialog = nullptr;
+        subDeviceType = -1;
+    }
 }StatusInfo;
 
 

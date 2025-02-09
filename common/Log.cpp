@@ -25,7 +25,7 @@ Log *Log::GetInstance()
 }
 
 
-Log::Log():m_nLogLevel(LOG_NONE),m_nMon(0),m_nDay(0),m_pFile(NULL),m_nIndex(1)
+Log::Log():m_nLogLevel(LOG_WARNING),m_nMon(0),m_nDay(0),m_pFile(NULL),m_nIndex(1)
 {
 	//SetThreadIndex(0);
 	memset(m_szFileName,0,sizeof(m_szFileName));

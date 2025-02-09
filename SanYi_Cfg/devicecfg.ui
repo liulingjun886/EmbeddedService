@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>460</width>
-    <height>240</height>
+    <width>430</width>
+    <height>340</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>0</number>
+    <number>4</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -27,39 +27,52 @@
     <number>0</number>
    </property>
    <property name="bottomMargin">
-    <number>9</number>
+    <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+    <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0,0,1" columnminimumwidth="0,0,0,0,0">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <item row="0" column="0">
       <widget class="QLabel" name="label">
        <property name="text">
         <string>设备SN</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1" colspan="2">
       <widget class="QLineEdit" name="le_sn"/>
      </item>
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>设备型号</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="combo_model"/>
-     </item>
-     <item>
+     <item row="0" column="3">
       <widget class="QLabel" name="label_3">
        <property name="text">
         <string>设备名称</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="4">
       <widget class="QLineEdit" name="le_name"/>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>重要等级</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="4">
+      <widget class="QComboBox" name="combo_model_nice"/>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>设备型号</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" colspan="2">
+      <widget class="QComboBox" name="combo_model"/>
      </item>
     </layout>
    </item>
@@ -68,7 +81,13 @@
      <property name="title">
       <string>连接方式</string>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+     </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
       <item>
        <widget class="QRadioButton" name="radioButton">
         <property name="text">
@@ -111,7 +130,11 @@
     </widget>
    </item>
    <item>
-    <widget class="QStackedWidget" name="stackedWidget"/>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">

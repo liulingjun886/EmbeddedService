@@ -16,8 +16,10 @@ enum Modbus_Type
 class ModbusOperator
 {
 public:
+	static int InitModbusOperaterHander(ModbusOperator* p, int type, const char * initdata, UINT32 nTimeOut);
 	ModbusOperator();
 	~ModbusOperator();
+public:
 	int CreateCtx(const std::string& devPath,int nBaud, int nDataBit,int nParity, int nStopBit);
 	int CreateCtx(const std::string& ipAddr,UINT16 nPort);
 	int InitCtx(int nSalveId, int nTimeOut);
@@ -30,6 +32,8 @@ public:
 	int WriteRegister(int regAddr, UINT16 data);
 	int WriteRegisters(int regAddr, int regNum, UINT16* pData);
 	int EnableRs485();
+
+	int EnableDebug();
 	
 private:
 	modbus_t* m_pCtx;

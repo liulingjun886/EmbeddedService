@@ -19,15 +19,38 @@ void LoadDeviceManager::AddLoadDev(LoadDevice* pDev)
 
 float LoadDeviceManager::GetNeedPower()
 {
-	float needPower = 0.f;
+	/*float needPower = 0.f;
 	for(std::vector<LoadDevice*>::iterator it = m_vec_load.begin(); it != m_vec_load.end(); ++it)
 	{
 		needPower += (*it)->GetData()->needp;
 	}
-	return needPower;
+	return needPower;*/
 }
 
 float LoadDeviceManager::SetPower(float p)
 {
 	
 }
+
+void  	LoadDeviceManager::StartLoad(Priority priority)
+{
+	for(std::vector<LoadDevice*>::iterator it = m_vec_load.begin(); it != m_vec_load.end(); ++it)
+	{
+		if(priority == (*it)->GetData()->m_priority)
+		{
+			(*it)->TurnOnOrOff(TURNON);
+		}
+	}
+}
+
+void	LoadDeviceManager::StopLoad(Priority priority)
+{
+	for(std::vector<LoadDevice*>::iterator it = m_vec_load.begin(); it != m_vec_load.end(); ++it)
+	{
+		if(priority == (*it)->GetData()->m_priority)
+		{
+			(*it)->TurnOnOrOff(TURNOFF);
+		}
+	}
+}
+

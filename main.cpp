@@ -13,18 +13,18 @@ int main(int argc, char* argv[])
 	int nThreadNum = 1;
 	int nLogLevel = LOG_INFO;
 	std::string logFileName = "log";
-	std::string productName = "";		//产品名称
+//	std::string productName = "";		//产品名称
 	std::string module = "";			//产品型号
 
 	//加载系统配置文件
 	Json::Value root;
 	if(!PublicTool::LoadJsonCfg(root, "syscfg.json"))
 	{			
-		if(root["LogLevel"].isInt())
-			nLogLevel = root["LogLevel"].asInt();
+//		if(root["LogLevel"].isInt())
+//			nLogLevel = root["LogLevel"].asInt();
 			
-		if(root["Product"].isString())
-			productName = root["Product"].asString();
+//		if(root["Product"].isString())
+//			productName = root["Product"].asString();
 
 		if(root["Model"].isString())
 			module = root["Model"].asString();
@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	//根据参数初始化CReeactor模块和日志模块
 	CReactor::GetInstance()->Init(1);
 	Log::GetInstance()->SetThreadIndex(0);
-	Log::GetInstance()->InitLog(logFileName.c_str(),(LOG_LEVEL)nLogLevel);
+	Log::GetInstance()->InitLog(logFileName.c_str());
 
 	//创建系统配置模块
 	if(SysCfgModule::GetInstance()->Init())
@@ -44,11 +44,9 @@ int main(int argc, char* argv[])
 	//创建并启动EMS模块
 	do
 	{
-		if("" == productName)
-			break;
-		std::string emsSo = PublicTool::GetProgramLocation()+"plug_in/";
-		emsSo.append(productName);
-		EMSServer* pEms = dynamic_cast<EMSServer*>(PublicTool::CreateDevice(emsSo+".so",module,true));
+		std::string emsSo = PublicTool::GetProgramLocation()+"plugs/";
+		emsSo.append("EMS.so");
+		EMSServer* pEms = dynamic_cast<EMSServer*>(PublicTool::CreateDevice(emsSo,module,true));
 		if(!pEms)
 			break;
 		

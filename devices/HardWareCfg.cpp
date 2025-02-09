@@ -23,13 +23,9 @@ HardWareCfg::~HardWareCfg()
 int HardWareCfg::Init()
 {
 	Json::Value cfgroot;
-	Json::Reader reader;
-	std::string content = PublicTool::ReadFile(PublicTool::GetProgramLocation()+"conf/HardWareCfg.json");
-	if(!reader.parse(content, cfgroot))
-	{
-		log_error("HardWareCfg reader.parse");
+
+	if(PublicTool::LoadJsonCfg(cfgroot, "HardWareCfg.json"))
 		return -1;
-	}
 	
 	if(!cfgroot.isObject())
 	{
@@ -59,7 +55,6 @@ int HardWareCfg::Init()
 	return 0;
 }
 
-
 const std::string& HardWareCfg::GetRs485Name(int i)
 {
 	if(i >= m_vec_rs485.size())
@@ -88,71 +83,54 @@ const int HardWareCfg::GetDoPin(int i)
 	return m_vec_do[i];
 }
 
-
 int HardWareCfg::InitRs485Info(const Json::Value& value)
 {
-	if(!value["RS485"].isArray())
+	if(value.isArray())
 	{
-		log_error("rs485 fomat wrong");
-		return -1;
+		const Json::Value& v = value;
+		for(int i = 0; i < value.size(); ++i)
+		{
+			m_vec_rs485.push_back(v[i].asString());
+		}
 	}
-
-	const Json::Value& v = value["RS485"];
-	for(int i = 0; i < value.size(); ++i)
-	{
-		m_vec_rs485.push_back(v[i].asString());
-	}
-	
 	return 0;
 }
 
 int HardWareCfg::InitCanInfo(const Json::Value& value)
 {
-	if(!value["CAN"].isArray())
+	if(value.isArray())
 	{
-		log_error("can fomat wrong");
-		return -1;
+		const Json::Value& v = value;
+		for(int i = 0; i < value.size(); ++i)
+		{
+			m_vec_can.push_back(v[i].asString());
+		}
 	}
-
-	const Json::Value& v = value["CAN"];
-	for(int i = 0; i < value.size(); ++i)
-	{
-		m_vec_can.push_back(v[i].asString());
-	}
-	
 	return 0;
 }
 
 int HardWareCfg::InitDiInfo(const Json::Value& value)
 {
-	if(!value["DI"].isArray())
+	if(value.isArray())
 	{
-		log_error("di fomat wrong");
-		return -1;
+		const Json::Value& v = value;
+		for(int i = 0; i < value.size(); ++i)
+		{
+			m_vec_di.push_back(v[i].asInt());
+		}
 	}
-
-	const Json::Value& v = value["DI"];
-	for(int i = 0; i < value.size(); ++i)
-	{
-		m_vec_di.push_back(v[i].asInt());
-	}
-
 	return 0;
 }
 	
 int HardWareCfg::InitDoInfo(const Json::Value& value)
 {
-	if(!value["DO"].isArray())
+	if(!value.isArray())
 	{
-		log_error("do fomat wrong");
-		return -1;
+		const Json::Value& v = value;
+		for(int i = 0; i < value.size(); ++i)
+		{
+			m_vec_di.push_back(v[i].asInt());
+		}
 	}
-
-	const Json::Value& v = value["DO"];
-	for(int i = 0; i < value.size(); ++i)
-	{
-		m_vec_di.push_back(v[i].asInt());
-	}
-
 	return 0;
 }

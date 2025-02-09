@@ -2,10 +2,9 @@
 
 enum CommunicatType
 {
-	NONE,
-	RS485=1,
-	CAN,
+	RS485=0,
 	NET,
+	CAN,
 	DI,
 	DO
 };

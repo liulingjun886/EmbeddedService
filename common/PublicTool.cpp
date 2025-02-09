@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <sys/time.h>
+#include <stdlib.h>
 
 const std::string& PublicTool::GetProgramLocation()
 {
@@ -27,7 +28,7 @@ const std::string& PublicTool::GetProgramLocation()
 		}
 		strProgramLocation = buf;
 	}
-	return strProgramLocation; // 0 is for heap memory
+	return strProgramLocation;
 }
 
 const std::string& PublicTool::GetNullString()
@@ -39,6 +40,11 @@ const std::string& PublicTool::GetNullString()
 bool PublicTool::FileIsExists(const std::string& file_name)
 {
     return (0 == access(file_name.c_str(), 0));
+}
+
+int  PublicTool::ExecShellCommand(const std::string& file_name)
+{
+	return system(file_name.c_str());
 }
 
 void* PublicTool::OpenSo(const std::string& soPath,bool global)
@@ -61,6 +67,8 @@ void* PublicTool::LoadFunAddr(void* pHander,const std::string& funName)
 	return pFun;
 }
 
+
+//global 是否将该动态库加载到全局空间
 Device* PublicTool::CreateDevice(const std::string& soPath, const std::string& model, bool global)
 {
 	void* pSoHander = OpenSo(soPath,global);
@@ -118,6 +126,17 @@ INT64 PublicTool::GetNowMSec()
 	gettimeofday(&tv, NULL);
   	return tv.tv_sec *1000 + tv.tv_usec * 0.001;
 }
+
+UINT32 PublicTool::MakeUint32CDAB(UINT32 data)
+{
+	return (data << 16) | (data >> 16);
+}
+
+UINT32 PublicTool::MakeUint32CDAB(UINT16 data1, UINT16 data2)
+{
+	return ((UINT32)data1 << 16) | data2;
+}
+
 /*
 Device* PublicTool::CreateDevice1i(const std::string& soPath,int parma1)
 {

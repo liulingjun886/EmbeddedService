@@ -82,6 +82,7 @@ int CTcpV4Server::InPutNotify()
 		pSocketItem->attach(connfd);
 		pSocketItem->SetRemoteAddr(szIp, ntohs(clientIP.sin_port));
 	}while(0);
+	
 	return 0;
 }
 

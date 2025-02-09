@@ -2,25 +2,33 @@
 
 DieselDevice::DieselDevice()
 {
+
 }
 
 DieselDevice::~DieselDevice()
 {
+	
+}
+
+const DGData* DieselDevice::GetData()
+{
+	return m_dg_data;
 }
 
 int DieselDevice::GetDataLen()
 {
-	return sizeof(DEData) + Device::GetDataLen();
+	return sizeof(DGData) + Device::GetDataLen();
 }
 
 int DieselDevice::SetDataPtr(char * ptr)
 {
 	int nBasicDataLen = Device::SetDataPtr(ptr);
-	m_de_data = new (ptr + nBasicDataLen) DEData;
-	return sizeof(DEData)+nBasicDataLen;
+	m_dg_data = new (ptr + nBasicDataLen) DGData;
+	return sizeof(DGData)+nBasicDataLen;
 }
 
-const DEData* DieselDevice::GetData()
+char* DieselDevice::GetLocalData(int& nlen)
 {
-	return m_de_data;
+	nlen = sizeof(DGData);
+	return (char*)m_dg_data;
 }

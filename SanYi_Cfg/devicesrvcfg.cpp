@@ -18,7 +18,10 @@ DeviceSrvCfg::~DeviceSrvCfg()
 
 void DeviceSrvCfg::on_pushButton_clicked()
 {
-    g_status_info.pSock = new CfgTcpSockItem;
-    g_status_info.pSock->Init(ui->iPLineEdit->text(),(unsigned short)ui->PortLineEdit->text().toInt());
+    if(!g_status_info.pSock)
+    {
+        g_status_info.pSock = new CfgTcpSockItem;
+        g_status_info.pSock->Init(ui->iPLineEdit->text(),(unsigned short)ui->PortLineEdit->text().toInt());
+    }
 }
 

@@ -19,6 +19,7 @@ public:
 
 public:
     int HandNetMsg(int nType, int nLen, const char* pData);
+    int UpdateSubDeviceWidget();
 
 private slots:
     void on_treeWidget_itemClicked(QTreeWidgetItem *item, int column);

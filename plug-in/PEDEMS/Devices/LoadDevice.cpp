@@ -27,3 +27,14 @@ const LoadData* LoadDevice::GetData()
 	return m_ld_data;
 }
 
+void  LoadDevice::SetPriority(Priority priority)
+{
+	m_ld_data->m_priority = priority;
+}
+
+char* LoadDevice::GetLocalData(int& nlen)
+{
+	nlen = sizeof(LoadData);
+	return (char*)m_ld_data;
+}
+

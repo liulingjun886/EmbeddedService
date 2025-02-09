@@ -9,6 +9,12 @@
 #include "DeviceManager.h"
 #include "Log.h"
 #include "HardWareCfg.h"
+#include <unistd.h>
+
+
+#define CRITICALINTERVAL 1000
+#define IMPORTANTINTERVAL 10000
+#define UNIMPORTANTINTERVAL 100000
 
 enum TIMEID
 {
@@ -57,18 +63,22 @@ int EMSDevice::SetDataPtr(char *ptr)
 	return sizeof(EMSData)+nBasicDataLen ;
 }
 
+void EMSDevice::StartDevice()
+{
+	m_time_energy_schedule.StartTimer(CRITICALINTERVAL*2);
+}
+
 const EMSData* EMSDevice::GetData()	
 {
 	return m_ems_data;
 }
 
-void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,const Json::Value& ConnParam)
+int EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,const Json::Value& ConnParam)
 {
 	connType = ConnParam["commtype"].asInt();
 	const Json::Value& commparam = ConnParam["commparam"];
 	switch(connType)
 	{
-		case NONE:
 		case RS485:
 		{
 			pConnParam.fill(0,sizeof(ModbusRtuComm));
@@ -79,7 +89,7 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 			pData->nParity = commparam["Parity"].asInt();
 			pData->nStopBit = commparam["StopBit"].asInt();
 			pData->nSlaveId = commparam["slaveid"].asInt();
-			return;
+			return commparam["addr"].asInt();
 		}
 		case NET:
 		{
@@ -88,7 +98,7 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 			snprintf(pData->addr,sizeof(pData->addr),"%s",commparam["addr"].asString().c_str());
 			pData->nPort = commparam["port"].asInt();
 			pData->nSlaveId = commparam["slaveid"].asInt();
-			return;
+			return 0;
 		}
 		case CAN:
 		{
@@ -96,63 +106,73 @@ void EMSDevice::GetDeviceConnParam(int& connType,ASyncCallDataInst& pConnParam,c
 			CanComm* pData = (CanComm*)pConnParam.data();
 			pData->nCanId = commparam["nCanId"].asInt();
 			pData->nBand = commparam["nBand"].asInt();
-			return;
+			return 0;
 		}
 		default:
-			return;
+			return 0;
 	}
-	return;
+	return 0;
 }
 
 void  EMSDevice::EnergySchedule()
-{
-	float loadTotalP = m_loadManager.GetNeedPower();
-	float needPower = 0.f;
-	needPower = m_pvManager.DisPatchPower(loadTotalP);
+{	
+	UINT32 load = m_pvManager.GetPower() + m_essManager.GetPower() + m_dieselManager.GetPower();
 
-	if(0 == needPower)
-		return;
-	
-	needPower = m_essManager.DisPatchPower(needPower);
+	//柴发启动停止阈值
+	if(m_essManager.GetSoc() < m_ems_data->esc.threshold_dg_turnon)
+		m_dieselManager.Start();
+	else if(m_essManager.GetSoc() > m_ems_data->esc.threshold_dg_turnoff)
+		m_dieselManager.Stop();
 
-	if(needPower < 0.f)
-	{
-		m_pvManager.SetPower(loadTotalP + needPower);
-		return;
-	}
+	log_debug("EMSDevice::EnergySchedule = %d, soc = %d", load,m_essManager.GetSoc());
 
-	needPower = m_dieselManager.DisPatchPower(needPower);
+	//重要负荷切合阈值
+	if(m_essManager.GetSoc() < m_ems_data->esc.threshold_ld_imp_turnoff)
+		m_loadManager.StopLoad(IMPORTANT);
+	else if(m_essManager.GetSoc() > m_ems_data->esc.threshold_ld_imp_turnon)
+		m_loadManager.StartLoad(IMPORTANT);
 
-	if(needPower > 0.f)
-		m_loadManager.SetPower(loadTotalP - needPower);
+	//一般负荷切合阈值
+	if(m_essManager.GetSoc() < m_ems_data->esc.threshold_ld_unimp_turnoff)
+		m_loadManager.StopLoad(UNIMPORTANT);
+	else if(m_essManager.GetSoc() > m_ems_data->esc.threshold_ld_unimp_turnon)
+		m_loadManager.StartLoad(UNIMPORTANT);
+
+	//光伏限功率阈值
+	if(m_essManager.GetSoc() > m_ems_data->esc.threshold_pv_turn_off)
+		m_pvManager.SetPower(0);
+	else if(m_essManager.GetSoc() < m_ems_data->esc.threadhold_pv_unlimit)
+		m_pvManager.SetPower(-1);
+	else if(m_essManager.GetSoc() < m_ems_data->esc.threadhold_pv_limit)
+		m_pvManager.SetPower(load);
+
+	m_time_energy_schedule.StartTimer(CRITICALINTERVAL);
 }
 
 int EMSDevice::CreateDevices()
 {
-	HardWareCfg::GetInstance()->Init();
-	DeviceManager::GetInstance()->Init();
-	std::string devCfg = PublicTool::ReadFile(PublicTool::GetProgramLocation()+"conf/Device.json");
-	//log_debug("devCfg = %s", devCfg.c_str());
+	HardWareCfg::GetInstance()->Init();			//初始化硬件接口
+	DeviceManager::GetInstance()->Init();		//初始化设备管理
+
 	Json::Value root;
-	Json::Reader reader;
-	
-	log_info("reader.parse");
-	if(!reader.parse(devCfg,root))
+	if(PublicTool::LoadJsonCfg(root, "Device.json"))
 	{
-		log_error("Device.json parse failer");
 		return -1;
 	}
 
-	if(!root["Pv"].isArray() || CreatePvDevices(root["Pv"]))
+	if(root["Pv"].isArray() && CreatePvDevices(root["Pv"]))
 		return -1;
 	
-	if(!root["Ess"].isArray() || CreatePvDevices(root["Ess"]))
+	if(root["Ess"].isArray() && CreateEssDevices(root["Ess"]))
 		return -1;
 
-	if(!root["Diesel"].isArray() || CreatePvDevices(root["Diesel"]))
+	if(root["Diesel"].isArray() && CreateDieselDevices(root["Diesel"]))
 		return -1;
 
-	if(!root["Load"].isArray() || CreatePvDevices(root["Load"]))
+	if(root["Load"].isArray() && CreateLoadDevices(root["Load"]))
+		return -1;
+
+	if(root["Meter"].isArray() && CreateMeterDevices(root["Meter"]))
 		return -1;
 
 	return 0;
@@ -166,62 +186,169 @@ int EMSDevice::CreatePvDevices(Json::Value& v)
 	for(int i = 0; i < v.size(); ++i)
 	{
 		Json::Value& dev = v[i];
-		Json::Value& obj = dev["dev"];
-
-		PVDevice *pPvDev = dynamic_cast<PVDevice *>(DeviceManager::GetInstance()->CreateDevice(obj["model"].asString()));
+		PVDevice *pPvDev = dynamic_cast<PVDevice *>(DeviceManager::GetInstance()->CreateDevice(dev["model"].asString()));
 		if(!pPvDev)
 			return -1;
 		
 		pPvDev->InitData();
 		int connType = 0;
 		ASyncCallDataInst data;
-		GetDeviceConnParam(connType,data,obj);
+		int nThreadIndex = GetDeviceConnParam(connType,data,dev);
 		if(pPvDev->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(), connType, data))
 			return -1;
-		m_pvManager.AddPvDev(pPvDev);
-		
-		if(!dev["Meter"].isObject())
-			continue;
-
-		MeterDevice* pMeter = CreateMeterDevices(dev["Meter"]);
-		if(pMeter)
+		CAsyncCallSupport* pSync = dynamic_cast<CAsyncCallSupport*>(pPvDev);
+		if(pSync)
 		{
-			m_vec_meter.push_back(pMeter);
+			SetDevAsyncCallThread(pSync,nThreadIndex);
 		}
+		pPvDev->SetCriticalInterval(CRITICALINTERVAL);
+		pPvDev->SetImportantInterval(IMPORTANTINTERVAL);
+		pPvDev->SetUnimportantInterval(UNIMPORTANTINTERVAL);
+		DeviceManager::GetInstance()->RegisterDevice(pPvDev);
+		m_pvManager.AddPvDev(pPvDev);
 	}
 }
 
 int EMSDevice::CreateEssDevices(Json::Value& v)
 {
-	
+	if(0 >= v.size())
+		return 0;
+
+	for(int i = 0; i < v.size(); ++i)
+	{
+		Json::Value& dev = v[i];
+		ESSDevice *pEssDev = dynamic_cast<ESSDevice *>(DeviceManager::GetInstance()->CreateDevice(dev["model"].asString()));
+		if(!pEssDev)
+			return -1;
+		
+		pEssDev->InitData();
+		int connType = 0;
+		ASyncCallDataInst data;
+		int nThreadIndex = GetDeviceConnParam(connType,data,dev);
+		if(pEssDev->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(), connType, data))
+			return -1;
+		
+		pEssDev->SetCriticalInterval(CRITICALINTERVAL);
+		pEssDev->SetImportantInterval(IMPORTANTINTERVAL);
+		pEssDev->SetUnimportantInterval(UNIMPORTANTINTERVAL);
+		CAsyncCallSupport* pSync = dynamic_cast<CAsyncCallSupport*>(pEssDev);
+		if(pSync)
+		{
+			SetDevAsyncCallThread(pSync,nThreadIndex);
+		}
+		DeviceManager::GetInstance()->RegisterDevice(pEssDev);
+		m_essManager.AddEssDev(pEssDev);
+	}
 }
 
 int EMSDevice::CreateDieselDevices(Json::Value& v)
 {
-	
+	if(0 >= v.size())
+		return 0;
+
+	for(int i = 0; i < v.size(); ++i)
+	{
+		Json::Value& dev = v[i];
+		DieselDevice *pPG = dynamic_cast<DieselDevice *>(DeviceManager::GetInstance()->CreateDevice(dev["model"].asString()));
+		if(!pPG)
+			return -1;
+		
+		pPG->InitData();
+		int connType = 0;
+		ASyncCallDataInst data;
+		int nThreadIndex = GetDeviceConnParam(connType,data,dev);
+		if(pPG->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(), connType, data))
+			return -1;
+		pPG->SetCriticalInterval(CRITICALINTERVAL);
+		pPG->SetImportantInterval(IMPORTANTINTERVAL);
+		pPG->SetUnimportantInterval(UNIMPORTANTINTERVAL);
+		CAsyncCallSupport* pSync = dynamic_cast<CAsyncCallSupport*>(pPG);
+		if(pSync)
+		{
+			SetDevAsyncCallThread(pSync,nThreadIndex);
+		}
+		DeviceManager::GetInstance()->RegisterDevice(pPG);
+		m_dieselManager.AddDieselDev(pPG);
+	}
 }
 
 int EMSDevice::CreateLoadDevices(Json::Value& v)
 {
-	
-}
+	if(0 >= v.size())
+		return 0;
 
-MeterDevice* EMSDevice::CreateMeterDevices(Json::Value& obj)
-{
-	MeterDevice* pMeter = dynamic_cast<MeterDevice *>(DeviceManager::GetInstance()->CreateDevice(obj["model"].asString()));
-	if(!pMeter)
-		return nullptr;
-	
-	pMeter->InitData();
-
-	int connType = 0;
-	ASyncCallDataInst data;
-	GetDeviceConnParam(connType,data,obj);
-	if(pMeter->Init(obj["uuid"].asString(), obj["model"].asString(), obj["uuid"].asString(),0))
+	for(int i = 0; i < v.size(); ++i)
 	{
-		delete pMeter;
-		return nullptr;
+		Json::Value& dev = v[i];
+		LoadDevice *pLd = dynamic_cast<LoadDevice *>(DeviceManager::GetInstance()->CreateDevice(dev["model"].asString()));
+		if(!pLd)
+			return -1;
+		
+		pLd->InitData();
+		int connType = 0;
+		ASyncCallDataInst data;
+		int nThreadIndex = GetDeviceConnParam(connType,data,dev);
+		if(pLd->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(), connType, data))
+			return -1;
+
+		CAsyncCallSupport* pSync = dynamic_cast<CAsyncCallSupport*>(pLd);
+		if(pSync)
+		{
+			SetDevAsyncCallThread(pSync,nThreadIndex);
+		}
+		pLd->SetCriticalInterval(CRITICALINTERVAL);
+		pLd->SetImportantInterval(IMPORTANTINTERVAL);
+		pLd->SetUnimportantInterval(UNIMPORTANTINTERVAL);
+		
+		DeviceManager::GetInstance()->RegisterDevice(pLd);
+		m_loadManager.AddLoadDev(pLd);
 	}
-	return pMeter;
+	return 0;
 }
 
+int EMSDevice::CreateMeterDevices(Json::Value& v)
+{
+	if(0 >= v.size())
+		return 0;
+	for(int i = 0; i < v.size(); ++i)
+	{
+		Json::Value& dev = v[i];
+		MeterDevice* pMeter = dynamic_cast<MeterDevice *>(DeviceManager::GetInstance()->CreateDevice(dev["model"].asString()));
+		if(!pMeter)
+			return -1;
+		
+		pMeter->InitData();
+
+		int connType = 0;
+		ASyncCallDataInst data;
+		int nThreadIndex = GetDeviceConnParam(connType,data,dev);
+		if(pMeter->Init(dev["uuid"].asString(), dev["model"].asString(), dev["uuid"].asString(),connType,data))
+			return -1;
+
+		CAsyncCallSupport* pSync = dynamic_cast<CAsyncCallSupport*>(pMeter);
+		if(pSync)
+		{
+			SetDevAsyncCallThread(pSync,nThreadIndex);
+		}
+		DeviceManager::GetInstance()->RegisterDevice(pMeter);
+	}
+	return 0;
+}
+
+void EMSDevice::ExitPrograme()
+{
+	sleep(5);
+	_exit(0);
+}
+
+void EMSDevice::SetDevAsyncCallThread(CAsyncCallSupport* p, int nIndex)
+{
+	if(0 == nIndex)
+	{
+		p->SetThreadIndex(rand() % GetThreadNum() + 1);
+	}
+	else
+	{
+		p->SetThreadIndex(nIndex % GetThreadNum() + 1);
+	}
+}

@@ -1,5 +1,6 @@
 ﻿#include "tcpsockitem.h"
 #include <QHostAddress>
+#include <StatusInfo.h>
 
 TcpSockItem::TcpSockItem() : m_pSock(nullptr), m_b_reconnect(false), m_b_connected(false)
 {
@@ -19,7 +20,7 @@ TcpSockItem::~TcpSockItem()
 
 int TcpSockItem::Init(const QString &addr, unsigned short port)
 {
-    m_b_reconnect = true;
+    //m_b_reconnect = true;
     m_remote_addr = addr;
     m_remote_port = port;
     if (Initialize())
@@ -117,7 +118,14 @@ void TcpSockItem::onDisconnected()
     if (m_b_reconnect)
         m_timer_connect.start(5000);
     else
+    {
+        if(g_status_info.pSock  == this)
+        {
+            g_status_info.pSock = nullptr;
+        }
         delete this;
+    }
+    //delete this;
 }
 
 void TcpSockItem::onConnected()

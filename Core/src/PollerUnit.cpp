@@ -41,10 +41,10 @@ void CPollerUnit::Wait(UINT64 timeOut)
 			FD_SET(fd,&rd);
 		
 		if(nEvent & WRITE)
-			FD_SET(fd,&rd);
+			FD_SET(fd,&wd);
 		
 		if(nEvent & ERROR)
-			FD_SET(fd,&rd);
+			FD_SET(fd,&ed);
 
 	}
 

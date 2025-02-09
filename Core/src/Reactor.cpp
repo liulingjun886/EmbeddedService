@@ -18,6 +18,17 @@ CReactor* CReactor::GetInstance()
 	return &s_pReactor;
 }
 
+CReactor::CReactor():m_b_running(true)
+{
+	
+}
+
+CReactor::~CReactor()
+{
+
+}
+
+
 int CReactor::Init(int num)
 {
 	//m_work_thread_num = num;

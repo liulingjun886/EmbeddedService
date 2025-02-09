@@ -123,7 +123,8 @@ public:
 	
 public:
 	virtual int  GetDataLen();
-
+	virtual char* GetLocalData(int& nlen);	//获取本地显示屏数据
+	
 protected:
 	virtual int SetDataPtr(char * ptr);
 

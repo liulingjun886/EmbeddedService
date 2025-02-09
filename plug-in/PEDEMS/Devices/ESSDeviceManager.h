@@ -12,10 +12,13 @@ public:
 public:
 	void  AddEssDev(ESSDevice* pDev);
 	float SetPower(float p);
+	float GetPower();
 	float DisPatchPower(float p);
-private:
+	int   GetSoc();
+
 	float GetMaxChargePower();
 	float GetMaxDisChargePower();
+	
 private:
 	std::vector<ESSDevice*> m_vec_ess;
 };

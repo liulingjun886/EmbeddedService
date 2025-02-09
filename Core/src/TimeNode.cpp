@@ -12,11 +12,13 @@ CTimeNode::~CTimeNode()
 {
 	
 }
+
 void CTimeNode::InitTimerNode(CTimeEventHander* pHand,UINT32 nTimeId)
 {
 	m_timer_node = pHand;
 	m_n_time_id = nTimeId;
 }
+
 void CTimeNode::StartTimer(UINT32 nExpired,UINT64 nCnt)
 {
 	if(0 != m_n_repeat)
@@ -24,8 +26,8 @@ void CTimeNode::StartTimer(UINT32 nExpired,UINT64 nCnt)
 	m_n_repeat = nCnt;
 	m_n_trig_interval = nExpired;
 	CReactor::GetInstance()->RegisterTimer(this);
-	
 }
+
 void CTimeNode::StartTimerSec(UINT32 nExpired,UINT64 nCnt)
 {
 	StartTimer(nExpired*1000,nCnt);
@@ -51,7 +53,9 @@ void CTimeNode::TimerNotify()
 	{
 		CReactor::GetInstance()->RegisterTimer(this);
 	}
-	m_timer_node->ProcessTimeOutEvent(m_n_time_id);
+	
+	if(m_timer_node)
+		m_timer_node->ProcessTimeOutEvent(m_n_time_id);
 }
 
 bool CTimeNode::operator<(const CTimeNode& node)

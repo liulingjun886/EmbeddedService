@@ -18,14 +18,19 @@ CWorkThread::CWorkThread():m_b_sleep(false)
 CWorkThread::~CWorkThread()
 {
 	AsyncCallListNode *p = nullptr;
-	while(p = m_list_block_pool.Pop())
+	while(p = m_list_req.Pop())
 	{
-		delete[] p;
+		delete p;
 	}
 }
 
 int CWorkThread::start()
 {
+	// for(int i = 0; i < MAX_WORKTHREAD_REQ; ++i)
+	// {
+	// 	m_list_rest_data_pool.Push(m_sz_block_pool[i]);
+	// }
+
 	if(pthread_create(&m_pid,NULL,Run,this))
 		return -1;
 	return 0;
@@ -63,27 +68,17 @@ void CWorkThread::run()
 
 AsyncCallListNode *CWorkThread::MallocAsyncCallListNode()
 {
-	CToolLock lock(&m_mutex);
-	AsyncCallListNode *p = m_list_rest_data_pool.Pop();
-	if(p)
-		return p;
-
-	p = new AsyncCallListNode[4096];
-	if(!p)
-		return nullptr;
-	m_list_block_pool.Push(p);
-	
-	for(int i = 0; i < 4096; ++i)
-	{
-		m_list_rest_data_pool.Push(&p[0]);
-	}
-	return m_list_rest_data_pool.Pop();
+	// CToolLock lock(&m_mutex);
+	// AsyncCallListNode *p = m_list_rest_data_pool.Pop();
+	// if(p)
+	// 	return p;
+	return nullptr;
 }
 
 void CWorkThread::FreeAsyncCallListNode(AsyncCallListNode* pNode)
 {
-	CToolLock lock(&m_mutex);
-	m_list_rest_data_pool.Push(pNode);
+	//CToolLock lock(&m_mutex);
+	//m_list_rest_data_pool.Push(pNode);
 }
 
 

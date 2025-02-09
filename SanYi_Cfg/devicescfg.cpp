@@ -22,6 +22,7 @@ DevicesCfg::DevicesCfg(QWidget *parent) :
     ui->combo_type->insertItem(1,"储能设备");
     ui->combo_type->insertItem(2,"柴发设备");
     ui->combo_type->insertItem(4,"负载设备");
+    ui->combo_type->insertItem(5,"电表设备");
 
     connect(this,SIGNAL(del_device(void*)),this,SLOT(on_del_device(void*)));
 
@@ -51,7 +52,7 @@ void DevicesCfg::ShowAllDevice()
         pDev->setVisible(true);
     }
     QRect rect = ui->wid_devices->geometry();
-    ui->wid_devices->setGeometry(rect.x(),rect.y(),rect.width(),240*m_vec_device.size());
+    ui->wid_devices->setGeometry(rect.x(),rect.y(),rect.width(),280*m_vec_device.size());
     qDebug() << "ShowAllDevice"<<m_vec_device.size() << "count = " << m_p_verlayout->count();
 }
 
@@ -124,7 +125,6 @@ void DevicesCfg::on_del_device(DeviceCfg* pDev)
             return;
         }
     }
-
 }
 
 int  DevicesCfg::GetCurrentType()
@@ -163,10 +163,14 @@ void DevicesCfg::on_btn_save_clicked()
             m_json_dev_cfg["Load"] = arr;
             break;
         }
+        case 4:
+        {
+            m_json_dev_cfg["Meter"] = arr;
+            break;
+        }
         default:
             break;
     }
-
     QJsonDocument doc(arr);
     qDebug() << doc.toJson(QJsonDocument::Compact);
 }
@@ -216,6 +220,13 @@ void DevicesCfg::on_combo_type_currentIndexChanged(int index)
             ShowDevicesByJson(m_json_dev_cfg["Load"].toArray());
             return;
         }
+        case 4:
+        {
+            ShowDevicesByJson(m_json_dev_cfg["Meter"].toArray());
+            return;
+        }
+        default:
+            return;
     }
 }
 

@@ -27,3 +27,9 @@ int MeterDevice::SetDataPtr(char * ptr)
 	return sizeof(MeterData)+nBasicDataLen;
 }
 
+char* MeterDevice::GetLocalData(int& nlen)
+{
+	nlen = sizeof(MeterData);
+	return (char*)m_pMeterData;
+}
+

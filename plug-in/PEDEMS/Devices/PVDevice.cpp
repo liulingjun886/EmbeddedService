@@ -25,3 +25,9 @@ const PVData* PVDevice::GetData()
 	return m_pv_data;
 }
 
+char* PVDevice::GetLocalData(int& nlen)
+{
+	nlen = sizeof(PVData);
+	return (char*)m_pv_data;
+}
+

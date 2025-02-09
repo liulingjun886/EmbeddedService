@@ -67,38 +67,40 @@ int FileTransmite::TransmitComment(char* pData, int size)
 
 int FileTransmite::TransmitSucess(bool b)
 {
+	int ret = 0;
 	if(b)
 	{
 		close(m_file_fd);
 		m_file_fd = -1;
 	}
+	
+	do{
+		ifstream in(m_str_file_path + "trunk.zip");
+		if(!in.is_open())
+		{
+			log_error("transmitfile open failer");
+			ret = -1;
+			break;
+		}
 
-	ifstream in(m_str_file_path + "trunk.zip");
-	if(!in.is_open())
-	{
-		log_error("transmitfile open failer");
-		return -1;
-	}
+		MD5 md5(in);
+		if(md5.toString() != m_str_file_md5)
+		{
+			log_error("md5 wrong filemd5 = %s, md5 = %s",md5.toString().c_str(),m_str_file_md5.c_str());
+			ret = -2;
+			break;
+		}
 
-	MD5 md5(in);
-	if(md5.toString() != m_str_file_md5)
-	{
-		log_error("md5 wrong filemd5 = %s, md5 = %s",md5.toString().c_str(),m_str_file_md5.c_str());
-		return -1;
-	}
-
-	char com[512] = {0};
-	sprintf(com,"cd %s && tar -xvf trunk.zip && sh run.sh && cd -", m_str_file_path.c_str());
-	int ret = 0;
-	if(ret = system(com))
-	{
-		log_error("uploadfile tar error %d",ret);
-	}
-
-	std::string command = "rm -f " + m_str_file_path + "*";
-	//if(system(command.c_str()))
-	//	log_error("remove tar error %d",ret);
-	return 0;
+		char com[512] = {0};
+		sprintf(com,"cd %s && tar -xvf trunk.zip && sh run.sh && cd -", m_str_file_path.c_str());
+		int ret = 0;
+		if(ret = system(com))
+		{
+			log_error("uploadfile tar error %d",ret);
+		}
+	}while(0);
+	PublicTool::ExecShellCommand("rm -f " + m_str_file_path + "*");
+	return ret;
 }
 
 int FileTransmite::TransmitFailer(bool b)
